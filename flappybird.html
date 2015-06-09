@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html xmlns="http://www.w3.org/1999/xhtml" >
+       <head>
+             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+           
+             <title>flappy bird</title>
+             <style>
+             .point{
+             width:1px ;
+             height:1px ;
+             background-color:black ;
+             position:absolute ;
+             border-radius:50% ;
+            }
+             .bird{
+              border-radius:50% ;
+              border:1px solid black ;
+              position:absolute ;
+              width:10px ;
+              height:10px ;
+              z-index:9999;
+            }
+             .box{
+             width:800px ;
+             height:300px ;
+             position:absolute ;
+             top:150px ;
+             left:20px ;
+            }
+             .barrier{
+             position:absolute ;
+             border:1px solid gray ;
+             width:30px ;
+            }
+             </style>
+       </head>
+       <body  class="sysdefaultbg" >
+       <input type='button' id = 'btn' value = 'start' /><div style='display :none;width:400px; height:500px ;overflow :scroll' />
+       </body>
+<script>
+
+  /*
+  @autor leochia
+      模拟竖直上抛运动轨迹
+  以时间为单位，y轴方向单位时间的位移 是 运动轨迹实现的原理支撑
+ 1. vt = v0+gt  ;计算没
+    s= (vt~2-v0~2)/2g ;计算
+  2.刷新时间间隔决定了轨迹平滑程度
+  3.碰撞检测
+ */
+ var Ext;
+ if(Ext== null){
+  Ext = {};
+ }
+ if(Ext.lt== null){
+  Ext.lt = {};
+ }
+  var point = null;
+  function  start(){
+    if(point==null){
+      point = new Ext.lt.bird();
+      point.draw();
+    }
+ 
+   point.start();
+  
+  }
+  document.getElementById( 'btn').onclick=start;
+  Ext.lt.bird= function(cfg){
+  var _cfg= {r:150} ;
+     var c = {timer:[],endflag:false,zone:[]};
+     var x,y,g,t,tag,v0= 0;
+     var  vt = 0;
+     var  s0 = 0;
+     var b = null;
+     c.draw= function(el){
+       b = document.createElement( "div");
+       b.className = 'bird';
+       paint(b,y,x);
+     
+       var container = document.createElement("div");
+       container.className = 'box'; //场景
+       var frag = document.createDocumentFragment();
+       var l = 150;
+       for(var i=0,il=5;i<il;i++){
+        var div = document.createElement("div");
+        div.className = 'barrier';
+        div.style.left = l+ 'px';
+        div.style.height = ((i%2==0)?150:80) + 'px';
+        div.style.top = (i%2==0)?0:(300-80) + 'px';
+      
+        c.zone.push({t:(i%2==0)?0:(300-80),r:l+30,b:((i%2==0)?0:(300-80))+((i%2==0)?150:80),l:l}); //禁飞区
+      
+         frag.appendChild(div);
+         l+=80;
+       }
+       container.appendChild(frag);
+       container.appendChild(b);
+       document.body.appendChild(container);
+     }
+     function init(){
+       g = -9.8;  //重力加速度
+       x = 10; //初始位置
+       y = 300;
+       t= 0;
+       tag = 0.5; //刷新间隔
+     }
+   
+     c.resize= function(){
+   
+     }
+     
+     c.restart=function(){
+     
+     }
+     
+     c.start= function(){
+     c.endflag= true;
+      for(var i=0,il=c.timer.length;i<il;i++){
+        clearTimeout(c.timer[i]);
+      }
+       c.endflag= false;
+      v0 = 40;
+      if(t!=0)v0=20; //
+      t=0;
+       move();
+     }
+     function move(){
+     if(y>300||c.endflag||detect()){ //终止条件
+       return ;
+      }
+        vt = v0+g*(t/1000);
+      // var s = v0*(t/1000)+g*Math.pow((t/1000),2)/2;
+      var s = (Math.pow(vt,2)-Math.pow(v0,2))/(2*g);
+     
+       var _s = s!=0?(s-s0):0; //每个时间间隔对应的位移间隔
+       x +=0.15;
+       paint(b,y-_s,x);
+       y = y-_s;
+       // document.getElementById('btn').nextSibling.innerHTML += y+'\n'
+       s0 = s;
+       t+=15; // 根据时间间隔计算位移
+      c.timer.push(setTimeout( function(){
+        move();
+      }),tag);
+     }
+   
+     //碰撞检测
+     function detect(){
+     var _x = x+5;
+     var _y = y+5; //中心点
+      for (var i=0,il=c.zone.length;i<il;i++){
+         var z = c.zone[i];
+         if(_x>=z.l&&_x<=z.r&&_y<=z.b&&_y>=z.t){
+           return true ;
+         }
+      }
+       return false ;
+     }
+   
+     init();
+   
+     function paint(obj,t,l,w,h){
+      w!= null&&(obj.style.width= w+'px');
+      h!= null&&(obj.style.height= h+'px');
+      t!= null&&(obj.style.top= t+'px');
+      l!= null&&(obj.style.left= l+'px');
+     }
+     return c;
+ 
+  }
+            point = new Ext.lt.bird();
+      point.draw();
+</script>
+</html>
