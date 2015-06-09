@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		
+		<title>big bang</title>
+		<style>
+		.point{
+		 width:1px;
+		 height:1px;
+		 background-color:black;
+		 position:absolute;
+		 border-radius:50%;
+		}
+		.circle{
+		  border-radius:50%;
+		  border:1px solid black;
+		  position:absolute;
+		}
+		</style>
+	</head>
+	<body  class="sysdefaultbg">
+	<input type='button' id = 'btn' value ='start' />
+	</body>
+<script>
+if(typeof(Ext)=="undefined"){
+ Ext = {};
+ Ext.lt = {}
+}
+/*
+   @autor leochia
+   1.初始点的分布，不能用随机算法，
+   2.每个点的轨迹运行单独计算
+   3.初始产生点，每两个点的角度差值为10, 每十个点 半径递增
+             这样，这样采用较为离散的伪随机算法，算出来的初始点的位置。利用圆轨迹的参数方程 x=a+r.cos(e);y=b+r.sin(e);
+     变更每个点的位置，半径递增0.05 e递增0.085,每16ms变更一次位置 
+    4.应不停产生点，并回收点
+    5.性能影响
+*/
+  var point = null;
+  function  start(){
+    if(point==null){
+    	point = new Ext.lt.point();
+    	point.draw();
+    }
+     point.start();
+    
+  }
+  document.getElementById('btn').onclick=start;
+  Ext.lt.point=function(cfg){
+  var _cfg=Ext.lt.apply({r:150},cfg);
+     var c = {timer:[],p:[],p2:[]};
+     var x,y, e = 0;
+     c.draw=function(el){
+      if(el==null)el=document.body;
+      
+      var frag = document.createDocumentFragment();
+      
+      for(var i =0,il=100;i<il;i++){
+             var p = document.createElement('div');
+       p.className='point';
+     //  p.r = _cfg.r*Math.random();
+       c.p.push(p);
+       
+       frag.appendChild(p);
+      }
+       document.body.appendChild(frag);
+        var ab = -1;
+        var ie = 0;
+        var tag = 10; //参数方程
+        for(var j=0,jl=c.p.length;j<jl;j++){
+           var p = c.p[j];
+	       	var pr =  _cfg.r-140+(j/10)*5; //半径递增
+	       	var pe = e%360;
+	       	var px =  pr*Math.sin(pe);
+	       	var py =  pr*Math.cos(pe);
+     		p.style.left = (c.cc.x+px)+'px';
+	       	p.style.top = (c.cc.y+px)+'px';
+	       	p.pr = pr; //当前半径
+	       	p.e = pe;
+	       	p.s = 16 //初始移动速度
+       	    e += tag;
+        }
+     }
+     function init(){
+      if(c.cc==null){
+      var w = document.body.offsetWidth;
+	 
+      var h = document.documentElement.clientHeight;
+         c.cc = {x:w/2,y:h/2};
+         x = c.cc.x;
+         y = c.cc.y;
+      }
+     }
+     
+     c.resize=function(){
+     
+     }
+     c.start=function(){
+       for(var i=0,il=c.timer.length;i<il;i++){
+         clearTimeout(c.timer[i]);
+       }
+       
+        for(var d =0,dl=c.p.length;d<dl;d++){
+        var p = c.p[d];
+        	move(p);
+        }
+     }
+     var count = 0;
+     function move(p){
+     p.e=p.e%360;
+     if(p.pr>100){
+            var pr =  _cfg.r-140+(30/10)*5; //半径递增
+	       	var pe = p.e;
+	       	var px =  pr*Math.sin(pe);
+	       	var py =  pr*Math.cos(pe);
+     		p.style.left = (c.cc.x+px)+'px';
+	       	p.style.top = (c.cc.y+px)+'px';
+	       	p.pr = pr;
+     }else{
+        var pox = Math.abs((Math.cos(p.e))*p.pr - x);
+    	var poy = Math.abs((Math.sin(p.e))*p.pr - y);
+    	p.style.left = pox+'px';
+        p.style.top = poy+'px';
+        p.e+=0.0085;
+        p.pr+=0.05;
+     }
+ 
+      c.timer.push(setTimeout(function(){move(p);},p.s));
+     }
+     
+     
+     init();
+     function paint(obj,w,h,l,t){
+      w!=null&&(obj.style.width= w+'px');
+      h!=null&&(obj.style.height= h+'px');
+      t!=null&&(obj.style.top= t+'px');
+      l!=null&&(obj.style.left= l+'px');
+     }
+     return c;
+  
+  }
+	Ext.lt.apply = function(p,c){for(var n in c){p[n]=c[n]};return p};
+</script>
+</html>
