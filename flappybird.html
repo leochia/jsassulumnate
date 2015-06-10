@@ -21,12 +21,21 @@
               z-index:9999;
             }
              .box{
-             width:800px ;
+             width:600px ;
              height:300px ;
              position:absolute ;
              top:150px ;
-             left:20px ;
+             left:40px ;
+             border:1px solid gray;
             }
+            .screen{
+             width:665px ;
+             height:300px ;
+             position:relative ;
+             top:0px ;
+             left:-30px ;
+            }
+   
              .barrier{
              position:absolute ;
              border:1px solid gray ;
@@ -38,7 +47,6 @@
        <input type='button' id = 'btn' value = 'start' /><div style='display :none;width:400px; height:500px ;overflow :scroll' />
        </body>
 <script>
-
   /*
   @autor leochia
       模拟竖直上抛运动轨迹
@@ -68,7 +76,7 @@
   document.getElementById( 'btn').onclick=start;
   Ext.lt.bird= function(cfg){
   var _cfg= {r:150} ;
-     var c = {timer:[],endflag:false,zone:[]};
+     var c = {timer:[],endflag:false,zone:new Ext.lt.queue()};
      var x,y,g,t,tag,v0= 0;
      var  vt = 0;
      var  s0 = 0;
@@ -89,12 +97,21 @@
         div.style.height = ((i%2==0)?150:80) + 'px';
         div.style.top = (i%2==0)?0:(300-80) + 'px';
       
-        c.zone.push({t:(i%2==0)?0:(300-80),r:l+30,b:((i%2==0)?0:(300-80))+((i%2==0)?150:80),l:l}); //禁飞区
+      //  c.zone.push({t:(i%2==0)?0:(300-80),r:l+30,b:((i%2==0)?0:(300-80))+((i%2==0)?150:80),l:l}); //禁飞区
+      c.zone.push({
+        id:i+1,
+        _d:div,
+        _p:{t:(i%2==0)?0:(300-80),r:l+30,b:((i%2==0)?0:(300-80))+((i%2==0)?150:80),l:l}
+      })
       
          frag.appendChild(div);
          l+=80;
        }
-       container.appendChild(frag);
+       var screen = document.createElement("div");
+       screen.className = "screen";
+      
+        screen.appendChild(frag);
+       container.appendChild(screen);
        container.appendChild(b);
        document.body.appendChild(container);
      }
@@ -124,7 +141,41 @@
       if(t!=0)v0=20; //
       t=0;
        move();
+       if(!!!isstart)moveall();
+       isstart = true;
      }
+     
+     var isstart = false;
+     function moveall(){
+        var _c = c.zone;
+        while(_c.hasnext()){
+          var _t = _c.next();
+          paint(_t._d,null,_t._d.offsetLeft-0.51);
+        }
+        var t = _c.get();
+       if(t._d.offsetLeft<=0){
+         paint(_t._d,null,630);
+            _c.turn();
+         }
+        
+/*        for(var i=0,il=_c.length;i<il;i++){
+  //       var _t = _c[i];
+  //       paint(_t._d,null,_t._d.offsetLeft-0.51);
+ //        }
+         if(_c[0]._d.offsetLeft<=0){
+         paint(_c[0]._d,null,630);
+               var tmp = _c[0];
+         _c[0] =  _c[i-1];
+          _c[i-1] = tmp;
+         }
+   */      
+         setTimeout(function(){
+         moveall();
+         },18);
+     }
+     
+     c.moveall=moveall;
+     
      function move(){
      if(y>300||c.endflag||detect()){ //终止条件
        return ;
@@ -150,7 +201,7 @@
      var _x = x+5;
      var _y = y+5; //中心点
       for (var i=0,il=c.zone.length;i<il;i++){
-         var z = c.zone[i];
+         var z = c.zone[i]._p;
          if(_x>=z.l&&_x<=z.r&&_y<=z.b&&_y>=z.t){
            return true ;
          }
@@ -169,9 +220,78 @@
      return c;
  
   }
+  
+  Ext.lt.queue=function(cfg){
+   var c = {};
+   var _head={o:null,next:null,last:null};
+   var _now = null;
+   
+   function init(cfg){
+   if(cfg==null)return;
+   if(Object.prototype.toString.call(cfg)==='[object Array]'||cfg.length==0)return null;
+   var _t = {o:cfg[0],next:null}
+     _head.next = t;
+     for(var i=1,il=cfg.length;i<il;i++){
+         t.next = {o:cfg[i],next:null};
+         t = t.next
+     }
+     _head.last = t;
+   }
+   init(cfg);
+   
+   c.get=function(){
+     var _t = _head.next;
+     _now = _t;
+     return _t.o;
+   }
+   c.hasnext =function(){
+      return _now!=null;
+   }
+   c.next=function(){
+   var t = _now;
+   _now = _now.next;
+     return t.o;
+   }
+   c.push=function(c){
+       var _t = {o:c,next:null};
+       if(_head.last==null){
+          _head.next = _t;
+          _head.last = _t;
+       }else{
+         _head.last.next = _t;
+         _head.last = _t
+       }
+     
+       if(_now==null){
+       _now =  _head.next;
+       }
+   }
+   c.pop=function(){
+       var t = _head.next;
+       if(t==null)return null;
+       _head.next = t.next;
+       if(t.next==null)_head.last = null;
+       return t.o;
+   }
+   c.turn=function(){
+       if(_head.last==null)return;
+       var t =  _head.next;
+       _head.next =    t.next;
+       _head.last.next = t;
+       _head.last = t;
+       t.next = null;
+       
+   }
+   return c;
+   
+  }
             point = new Ext.lt.bird();
       point.draw();
       
-      window.document.body.addEventListener("click",point.start);
+      window.document.body.addEventListener("click",function(){
+      //point.start();
+    //  point.moveall();
+      
+      });
 </script>
 </html>
