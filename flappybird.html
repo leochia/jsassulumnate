@@ -5,6 +5,7 @@
            
              <title>flappy bird</title>
              <style>
+        
              .point{
              width:1px ;
              height:1px ;
@@ -21,10 +22,10 @@
               z-index:9999;
             }
             .allin{
-                         position:absolute ;
+             position:absolute ;
              top:150px ;
              left:40px ;
-              width:700px ;
+              width:800px ;
              height:300px ;
             }
              .box{
@@ -34,10 +35,19 @@
              border:1px solid gray;
             }
             .score{
-              width:180px ;
+              width:140px ;
              height:300px ;
              float:left;
-             z-index:99999;
+            }
+            .shadow{
+             width:30px ;
+             height:300px ;
+             float:left;
+         	 background-color:white;
+             background-image: none;
+			 filter: alpha(opacity :80);
+			 opacity :0.9;
+			 z-index:999999;
             }
             .screen{
              width:565px ;
@@ -130,16 +140,21 @@
        
        var allin = document.createElement("div");
        allin.className = "allin";
-      
+       var leftborder = document.createElement("div");
+       leftborder.className = "shadow";
+       var rightborder = document.createElement("div");
+       rightborder.className = "shadow";
        var score = document.createElement("div");
        score.className = "score";
+       allin.appendChild(leftborder);
         allin.appendChild(container);
+        allin.appendChild(rightborder);
         allin.appendChild(score);
        document.body.appendChild(allin);
      }
      function init(){
        g = -9.8;  //重力加速度
-       x = 10; //初始位置
+       x = 40; //初始位置
        y = 250;
        t= 0;
        tag = 0.05; //刷新间隔
@@ -256,7 +271,7 @@
         	var o = _c.next(); 
         	var d =  o._d;
           	var z = o._p;
-           	 if(_x>=d.offsetLeft-35&&_x<=(d.offsetLeft)&&_y<=z.b&&_y>=z.t){
+           	 if(_x>=d.offsetLeft-5&&_x<=(d.offsetLeft+30)&&_y<=z.b&&_y>=z.t){
                 return true ;
           }
            }
