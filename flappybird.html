@@ -21,7 +21,7 @@
               z-index:9999;
             }
              .box{
-             width:600px ;
+             width:500px ;
              height:300px ;
              position:absolute ;
              top:150px ;
@@ -89,7 +89,7 @@
        var container = document.createElement("div");
        container.className = 'box'; //场景
        var frag = document.createDocumentFragment();
-       var l = 150;
+       var l = 100;
        for(var i=0,il=5;i<il;i++){
         var div = document.createElement("div");
         div.className = 'barrier';
@@ -101,11 +101,11 @@
       c.zone.push({
         id:i+1,
         _d:div,
-        _p:{t:(i%2==0)?0:(300-80),r:l+30,b:((i%2==0)?0:(300-80))+((i%2==0)?150:80),l:l}
+        _p:{t:(i%2==0)?0:(300-80),r:l+30,b:((i%2==0)?0:(300-80))+((i%2==0)?150:80),l:l,w:30,h:((i%2==0)?150:80)}
       })
       
          frag.appendChild(div);
-         l+=80;
+         l+=80+i*10;
        }
        var screen = document.createElement("div");
        screen.className = "screen";
@@ -146,35 +146,42 @@
      }
      
      var isstart = false;
+     //制作地图
      function moveall(){
         var _c = c.zone;
         while(_c.hasnext()){
           var _t = _c.next();
           paint(_t._d,null,_t._d.offsetLeft-0.51);
         }
-        var t = _c.get();
-       if(t._d.offsetLeft<=0){
-         paint(_t._d,null,630);
-            _c.turn();
+        var head = _c.get();
+       if(head._d.offsetLeft<=0){
+       var tar =  randomposition(head._p);
+         paint(head._d,tar.t,530,null,tar.h);
+            _c.turn(); // 重新生成地图
          }
         
-/*        for(var i=0,il=_c.length;i<il;i++){
-  //       var _t = _c[i];
-  //       paint(_t._d,null,_t._d.offsetLeft-0.51);
- //        }
-         if(_c[0]._d.offsetLeft<=0){
-         paint(_c[0]._d,null,630);
-               var tmp = _c[0];
-         _c[0] =  _c[i-1];
-          _c[i-1] = tmp;
-         }
-   */      
          setTimeout(function(){
          moveall();
          },18);
      }
      
-     c.moveall=moveall;
+     function randomposition(o){
+     var r = [0.7,1.1,0.8,1.5,1.2];
+     
+       var _p =  Math.round(Math.random()*5+0);
+       _p = r[_p];
+       if(o.h*_p>250){
+        	return o;
+       }
+       if(o.t==0){
+		  o.b += (_p-1)*o.h;
+       }else{
+          o.t -= (_p-1)*o.h;
+       }
+        o.h = o.h*_p;
+        return o;
+     }
+     
      
      function move(){
      if(y>300||c.endflag||detect()){ //终止条件
@@ -182,7 +189,7 @@
       }
         vt = v0+g*(t/1000);
       // var s = v0*(t/1000)+g*Math.pow((t/1000),2)/2;
-      var s = (Math.pow(vt,2)-Math.pow(v0,2))/(2*g);
+      var s = (Math.pow(vt,2)-Math.pow(v0,2))/(2*g); //核心公式
      
        var _s = s!=0?(s-s0):0; //每个时间间隔对应的位移间隔
        x +=0.15;
@@ -200,12 +207,22 @@
      function detect(){
      var _x = x+5;
      var _y = y+5; //中心点
-      for (var i=0,il=c.zone.length;i<il;i++){
+     
+       var _c = c.zone.clone();
+        while(_c.hasnext()){
+          	var z = _c.next()._p;
+           	 if(_x>=z.l&&_x<=z.r&&_y<=z.b&&_y>=z.t){
+                return true ;
+          }
+           }
+    /*  
+     for (var i=0,il=c.zone.length;i<il;i++){
          var z = c.zone[i]._p;
          if(_x>=z.l&&_x<=z.r&&_y<=z.b&&_y>=z.t){
            return true ;
          }
       }
+      */
        return false ;
      }
    
@@ -221,6 +238,7 @@
  
   }
   
+  //队列先进先出
   Ext.lt.queue=function(cfg){
    var c = {};
    var _head={o:null,next:null,last:null};
@@ -233,11 +251,21 @@
      _head.next = t;
      for(var i=1,il=cfg.length;i<il;i++){
          t.next = {o:cfg[i],next:null};
-         t = t.next
+         t = t.next;
      }
      _head.last = t;
    }
    init(cfg);
+   
+   c.clone=function(){
+     var _c = new Ext.lt.queue();
+     var _h = _head;
+     while(_h.next!=null){
+     	_c.push(_h.next.o);
+     	_h = _h.next;
+     } 
+     return _c;
+   }
    
    c.get=function(){
      var _t = _head.next;
@@ -280,12 +308,11 @@
        _head.last.next = t;
        _head.last = t;
        t.next = null;
-       
    }
    return c;
    
   }
-            point = new Ext.lt.bird();
+      point = new Ext.lt.bird();
       point.draw();
       
       window.document.body.addEventListener("click",function(){
