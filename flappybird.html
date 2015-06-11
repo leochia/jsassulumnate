@@ -20,20 +20,32 @@
               height:10px ;
               z-index:9999;
             }
+            .allin{
+                         position:absolute ;
+             top:150px ;
+             left:40px ;
+              width:700px ;
+             height:300px ;
+            }
              .box{
              width:500px ;
              height:300px ;
-             position:absolute ;
-             top:150px ;
-             left:40px ;
+  			float:left;
              border:1px solid gray;
             }
+            .score{
+              width:180px ;
+             height:300px ;
+             float:left;
+             z-index:99999;
+            }
             .screen{
-             width:665px ;
+             width:565px ;
              height:300px ;
              position:relative ;
              top:0px ;
              left:-30px ;
+             overflow:hidden;
             }
    
              .barrier{
@@ -76,11 +88,13 @@
   document.getElementById( 'btn').onclick=start;
   Ext.lt.bird= function(cfg){
   var _cfg= {r:150} ;
-     var c = {timer:[],endflag:false,zone:new Ext.lt.queue()};
+     var c = {timer:[],timer2:[],endflag:false,zone:new Ext.lt.queue()};
      var x,y,g,t,tag,v0= 0;
      var  vt = 0;
      var  s0 = 0;
      var b = null;
+     var center = (500-10)/2;
+     var score = 0;
      c.draw= function(el){
        b = document.createElement( "div");
        b.className = 'bird';
@@ -113,12 +127,20 @@
         screen.appendChild(frag);
        container.appendChild(screen);
        container.appendChild(b);
-       document.body.appendChild(container);
+       
+       var allin = document.createElement("div");
+       allin.className = "allin";
+      
+       var score = document.createElement("div");
+       score.className = "score";
+        allin.appendChild(container);
+        allin.appendChild(score);
+       document.body.appendChild(allin);
      }
      function init(){
        g = -9.8;  //重力加速度
        x = 10; //初始位置
-       y = 300;
+       y = 250;
        t= 0;
        tag = 0.05; //刷新间隔
      }
@@ -131,11 +153,24 @@
      
      }
      
+     //成绩算法  
+     function addscore(s){
+       score+=s;
+     }
+     
+     var date = new Date();
      c.start= function(){
+      
      c.endflag= true;
       for(var i=0,il=c.timer.length;i<il;i++){
         clearTimeout(c.timer[i]);
       }
+      if(Math.floor(((new Date())-date)/1000)%3==0){
+      	      for(var i=0,il=c.timer2.length/2;i<il;i++){
+         clearTimeout(c.timer2[i]);
+       }
+      }
+
        c.endflag= false;
       v0 = 40;
       if(t!=0)v0=20; //
@@ -148,6 +183,10 @@
      var isstart = false;
      //制作地图
      function moveall(){
+          if(y>300||c.endflag||detect()){ //终止条件
+       return ;
+      }
+      
         var _c = c.zone;
         while(_c.hasnext()){
           var _t = _c.next();
@@ -158,11 +197,12 @@
        var tar =  randomposition(head._p);
          paint(head._d,tar.t,530,null,tar.h);
             _c.turn(); // 重新生成地图
+            addscore(10);
          }
         
-         setTimeout(function(){
+         c.timer2.push(setTimeout(function(){
          moveall();
-         },18);
+         },18));
      }
      
      function randomposition(o){
@@ -192,7 +232,9 @@
       var s = (Math.pow(vt,2)-Math.pow(v0,2))/(2*g); //核心公式
      
        var _s = s!=0?(s-s0):0; //每个时间间隔对应的位移间隔
-       x +=0.15;
+       if(x<=center){
+       	 x +=0.15;
+       }
        paint(b,y-_s,x);
        y = y-_s;
        // document.getElementById('btn').nextSibling.innerHTML += y+'\n'
@@ -210,19 +252,14 @@
      
        var _c = c.zone.clone();
         while(_c.hasnext()){
-          	var z = _c.next()._p;
-           	 if(_x>=z.l&&_x<=z.r&&_y<=z.b&&_y>=z.t){
+            
+        	var o = _c.next(); 
+        	var d =  o._d;
+          	var z = o._p;
+           	 if(_x>=d.offsetLeft-35&&_x<=(d.offsetLeft)&&_y<=z.b&&_y>=z.t){
                 return true ;
           }
            }
-    /*  
-     for (var i=0,il=c.zone.length;i<il;i++){
-         var z = c.zone[i]._p;
-         if(_x>=z.l&&_x<=z.r&&_y<=z.b&&_y>=z.t){
-           return true ;
-         }
-      }
-      */
        return false ;
      }
    
